@@ -15,7 +15,7 @@ public class BatteryConsumerService {
     @Autowired
     private KafkaRepo kafkaRepo;
 
-    @KafkaListener(topics = {"Benin", "Togo", "Kenya", "Rwanda", "Uganda", "Nigeria"}, groupId = "soc-monitor-group", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = {"Benin", "Togo", "Kenya", "Rwanda", "Uganda", "Nigeria"}, groupId = "soc-monitor-group")
     public void consume(BatteryMessage message) {
         System.out.println("🔵 Consumed BatteryMessage: " + message);
 
@@ -24,8 +24,9 @@ public class BatteryConsumerService {
         BmsEntity battery = kafkaRepo.findByBmsId(batteryNumber);
         if (battery != null && battery.getSoc() < 10) {
             System.out.println("⚡ Alert! SOC low for battery: " + batteryNumber + " Battery-SOC: " + battery.getSoc());
-        } else if (battery == null) {
-            System.out.println("⚠️ Battery not found: " + batteryNumber);
+        }
+        else{
+            System.out.println("Battery soc greater than 10: " + batteryNumber);
+        }
         }
     }
-}
