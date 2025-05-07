@@ -22,3 +22,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+
+alert:
+  api:
+    url: https://6c390093-7c94-4fbf-9f87-71a0205bd5f9.mock.pstmn.io/api/v1/send

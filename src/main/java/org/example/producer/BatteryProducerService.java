@@ -1,6 +1,8 @@
 package org.example.producer;
 
 import org.example.dto.BatteryMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,6 +16,8 @@ import java.util.Random;
 @Service
 public class BatteryProducerService {
 
+    private static final Logger logger = LoggerFactory.getLogger(BatteryProducerService.class);
+
     @Autowired
     private KafkaTemplate<String, BatteryMessage> kafkaTemplate;
 
@@ -23,7 +27,7 @@ public class BatteryProducerService {
     public void sendMessage(BatteryMessage message) {
         String topic = getTopicName(message.getCountryCode());
         kafkaTemplate.send(topic, message);
-        System.out.println("Sent to topic [" + topic + "]: " + message);
+        logger.info("Sent message to topic [{}]: {}", topic, message);
     }
 
     private String getTopicName(String countryCode) {
@@ -34,57 +38,45 @@ public class BatteryProducerService {
             case "RW" -> "Rwanda";
             case "UG" -> "Uganda";
             case "NG" -> "Nigeria";
-            default -> throw new IllegalArgumentException("Unsupported Country Code: " + countryCode);
+            default -> {
+                logger.error("Unsupported country code: {}", countryCode);
+                throw new IllegalArgumentException("Unsupported Country Code: " + countryCode);
+            }
         };
     }
+
     private final String[] batteryIds = {
-            "7227AB1LBPK2446",
-            "7227AB1LBPJ1205",
-            "7227AB564634734",
-            "7227AB1LBNF5742",
-            "7227AB1LBPA4795",
-            "7227AB1LBPA5447",
-            "A7246AX1A1RF004790",
-            "A225UA0000065",
-            "7227AB1LBPK0432",
-            "7227AB1LBPK0434",
-            "7227AB1LBPK04343",
-            "7227AB1LBPR43434",
-            "7227AB1LBER34344",
-            "7227AB1L36656566",
-            "7227AB1L6565H434",
-            "7227AB1L45454445",
-            "7227AB1LBPG1655",
-            "7227AB1LBPA4307",
-            "7227AB1LBPK2351",
-            "7227AB1LBNL3842",
-            "A7246AX1A1RB001517",
-            "U7245AU1G1SB001934",
-            "7227AB1LBPI2651",
-            "7227AB1LBPG8511",
-            "7227AB1LBPG5627",
-            "7227AB1LBPG1936",
-            "A7246AX1A1RB001723",
-            "7227AB1LBNF2501"
+            "7227AB1LBPK2446", "7227AB1LBPJ1205", "7227AB564634734", "7227AB1LBNF5742",
+            "7227AB1LBPA4795", "7227AB1LBPA5447", "A7246AX1A1RF004790", "A225UA0000065",
+            "7227AB1LBPK0432", "7227AB1LBPK0434", "7227AB1LBPK04343", "7227AB1LBPR43434",
+            "7227AB1LBER34344", "7227AB1L36656566", "7227AB1L6565H434", "7227AB1L45454445",
+            "7227AB1LBPG1655", "7227AB1LBPA4307", "7227AB1LBPK2351", "7227AB1LBNL3842",
+            "A7246AX1A1RB001517", "U7245AU1G1SB001934", "7227AB1LBPI2651", "7227AB1LBPG8511",
+            "7227AB1LBPG5627", "7227AB1LBPG1936", "A7246AX1A1RB001723", "7227AB1LBNF2501"
     };
 
     @Scheduled(fixedRate = 5000)
     public void sendRandomMessage() {
-        int countryIndex = random.nextInt(countryCodes.length);
-        String countryCode = countryCodes[countryIndex];
+        try {
+            int countryIndex = random.nextInt(countryCodes.length);
+            String countryCode = countryCodes[countryIndex];
 
-        int batteryIndex = random.nextInt(batteryIds.length);
-        String batteryNumber = batteryIds[batteryIndex];
+            int batteryIndex = random.nextInt(batteryIds.length);
+            String batteryNumber = batteryIds[batteryIndex];
 
-        BatteryMessage message = new BatteryMessage();
-        message.setBatteryNumber(batteryNumber);
-        message.setStationName("Station-" + random.nextInt(50));
-        message.setCountryCode(countryCode);
-        message.setStationCode("ST-" + random.nextInt(100));
-        message.setSwapAgentDeviceTokens(generateRandomDeviceTokens());
-        message.setEpochTime(String.valueOf(Instant.now().toEpochMilli()));
+            BatteryMessage message = new BatteryMessage();
+            message.setBatteryNumber(batteryNumber);
+            message.setStationName("Station-" + random.nextInt(50));
+            message.setCountryCode(countryCode);
+            message.setStationCode("ST-" + random.nextInt(100));
+            message.setSwapAgentDeviceTokens(generateRandomDeviceTokens());
+            message.setEpochTime(String.valueOf(Instant.now().toEpochMilli()));
 
-        sendMessage(message);
+            logger.debug("Preparing to send random message: {}", message);
+            sendMessage(message);
+        } catch (Exception e) {
+            logger.error("Error while sending random message", e);
+        }
     }
 
     private List<String> generateRandomDeviceTokens() {
