@@ -25,6 +25,7 @@ public class BatteryConsumerService {
         if (battery != null && battery.getSoc() < 10) {
             System.out.println("⚡ Alert! SOC low for battery: " + batteryNumber + " Battery-SOC: " + battery.getSoc());
         }
+
         else{
             System.out.println("Battery soc greater than 10: " + batteryNumber);
         }
